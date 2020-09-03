@@ -13,7 +13,7 @@ public enum EInverterStatus
 }
 
 /**
- * Controls the flow of time for all invertable game objects.
+ * Controls the flow of time for invertable game objects.
  * 
  * Note: There is no limit on how big the stack can grow, be very careful with memory consumption!
  */
@@ -26,15 +26,15 @@ public class InverterController : MonoBehaviour
     private Stack<TimeFrame> _frames;
 
     private List<GameObject> _invertables;
-    private bool initialFramePushed = false;
+    private bool _initialFramePushed = false;
 
     void Awake()
     {
         _currentTimeFrame = 0;
         _frames = new Stack<TimeFrame>();
         _invertables = new List<GameObject>();
-        InverterStatus = EInverterStatus.FORWARD;
-        if (Controller == null) Controller = this;
+        // InverterStatus should be defined by the user in the editor
+        if (Controller == null && gameObject.CompareTag("GameController")) Controller = this;
     }
 
     // Update is called once per frame
@@ -42,10 +42,10 @@ public class InverterController : MonoBehaviour
     {
         // Can't push the first frame in start because this script might run before the
         // other components register themselves with it.
-        if (!initialFramePushed)
+        if (!_initialFramePushed)
         {
             _frames.Push(CreateTimeFrame(_currentTimeFrame++));
-            initialFramePushed = true;
+            _initialFramePushed = true;
         }
 
         if (Input.GetButtonDown("Jump"))
@@ -61,10 +61,10 @@ public class InverterController : MonoBehaviour
 
     void FixedUpdate()
     {
-        switch(InverterStatus)
+        switch (InverterStatus)
         {
             case EInverterStatus.FORWARD:
-                FixedTime();
+                ForwardTime();
                 break;
             case EInverterStatus.PAUSED:
                 PausedTime();
@@ -85,7 +85,7 @@ public class InverterController : MonoBehaviour
         _invertables.Remove(invertable);
     }
 
-    void FixedTime()
+    void ForwardTime()
     {
         _frames.Push(CreateTimeFrame(_currentTimeFrame++));
     }
@@ -99,7 +99,7 @@ public class InverterController : MonoBehaviour
     {
         // TODO: Load state from frame stack
         // TODO: Special case, we never pop the first timeframe off the stack, since that's our epoch
-            
+
         if (_frames.Count > 1)
         {
             ConsumeTimeFrame(_frames.Pop());
@@ -119,7 +119,7 @@ public class InverterController : MonoBehaviour
         // TODO: Special case for the first frame, since there's no past frame we just store everything
         if (frameNumber == 0)
         {
-            
+
         }
 
         //  For now we just do a full frame each physics tick
@@ -162,8 +162,8 @@ public class InverterController : MonoBehaviour
             {
                 gameObject.transform.localScale = frame.ChangedProperties.Get<Vector3>(gameObject, "scale");
             }
-            
-            
+
+
             // If we have a rigid body we want to grab the velocity and angular velocity as well as position information
             Rigidbody rb = gameObject.GetComponent<Rigidbody>();
             if (rb != null)
@@ -186,7 +186,7 @@ public class InverterController : MonoBehaviour
                 if (frame.ChangedProperties.Has(rb, "isKinematic"))
                 {
                     rb.isKinematic = frame.ChangedProperties.Get<bool>(rb, "isKinematic");
-                }                
+                }
             }
         }
     }

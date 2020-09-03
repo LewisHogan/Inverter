@@ -4,12 +4,17 @@ using UnityEngine;
 
 public class InvertableToyController : MonoBehaviour
 {
+    public InverterController InverterController;
+
     private Rigidbody rb;
 
     // Start is called before the first frame update
     void Start()
     {
-        InverterController.Controller.RegisterInvertable(this.gameObject);
+        if (InverterController == null)
+            InverterController = InverterController.Controller;
+
+        InverterController.RegisterInvertable(this.gameObject);
         rb = GetComponent<Rigidbody>();
     }
 
@@ -21,6 +26,6 @@ public class InvertableToyController : MonoBehaviour
 
     private void OnDestroy()
     {
-        InverterController.Controller.DeregisterInvertable(this.gameObject);
+        InverterController.DeregisterInvertable(this.gameObject);
     }
 }

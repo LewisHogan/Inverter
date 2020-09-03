@@ -4,12 +4,16 @@ using UnityEngine;
 
 public class InverterPlayerController : MonoBehaviour
 {
+    public InverterController InverterController;
+
     private Rigidbody rb;
 
     // Start is called before the first frame update
     void Start()
     {
-        InverterController.Controller.RegisterInvertable(this.gameObject);
+        if (InverterController == null)
+            InverterController = InverterController.Controller;
+        InverterController.RegisterInvertable(this.gameObject);
         rb = GetComponent<Rigidbody>();
     }
 
@@ -21,7 +25,7 @@ public class InverterPlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (InverterController.Controller.InverterStatus == EInverterStatus.FORWARD)
+        if (InverterController.InverterStatus == EInverterStatus.FORWARD)
         {
             var forward = Input.GetAxis("Vertical") * 3;
             var side = Input.GetAxis("Horizontal") * 3;
@@ -32,6 +36,6 @@ public class InverterPlayerController : MonoBehaviour
 
     private void OnDestroy()
     {
-        InverterController.Controller.DeregisterInvertable(this.gameObject);
+        InverterController.DeregisterInvertable(this.gameObject);
     }
 }
